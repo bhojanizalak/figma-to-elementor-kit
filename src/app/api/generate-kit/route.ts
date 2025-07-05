@@ -5,14 +5,17 @@ async function fetchFigmaStyles(figmaToken: string, fileId: string) {
   const res = await fetch(`https://api.figma.com/v1/files/${fileId}/styles`, {
     headers: { Authorization: `Bearer ${figmaToken}` },
   });
-  if (!res.ok) throw new Error("Failed to fetch Figma styles");
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Figma API error response:", errorText);
+    throw new Error("Failed to fetch Figma styles: " + errorText);
+  }
   const data = await res.json();
   return data.styles;
 }
 
 // Map Figma styles to a basic Elementor kit format
 function mapToElementorKit(styles: unknown) {
-  // This is a minimal example. Elementor kits are more complex, but this gives you a starting point.
   const styleArr = Object.values(styles as Record<string, unknown>);
   const colors = styleArr.filter((s) => (s as { style_type?: string }).style_type === "FILL");
   const text = styleArr.filter((s) => (s as { style_type?: string }).style_type === "TEXT");
@@ -31,7 +34,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing Figma token or file ID" }, { status: 400 });
     }
     const styles = await fetchFigmaStyles(figmaToken, fileId);
-    // For a real kit, you'd fetch node details and map to Elementor's expected format
     const kit = mapToElementorKit(styles);
     const kitJson = JSON.stringify(kit, null, 2);
     return new NextResponse(kitJson, {
@@ -42,6 +44,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err: unknown) {
+    console.error("API Error in /api/generate-kit:", err);
     const errorMsg = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
