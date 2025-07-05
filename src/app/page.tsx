@@ -24,8 +24,9 @@ export default function Home() {
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       setKitUrl(url);
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

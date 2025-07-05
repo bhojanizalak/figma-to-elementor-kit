@@ -10,22 +10,12 @@ async function fetchFigmaStyles(figmaToken: string, fileId: string) {
   return data.styles;
 }
 
-// Helper to fetch Figma nodes (for style details)
-async function fetchFigmaNodes(figmaToken: string, fileId: string, nodeIds: string[]) {
-  const ids = nodeIds.join(",");
-  const res = await fetch(`https://api.figma.com/v1/files/${fileId}/nodes?ids=${ids}`, {
-    headers: { Authorization: `Bearer ${figmaToken}` },
-  });
-  if (!res.ok) throw new Error("Failed to fetch Figma nodes");
-  const data = await res.json();
-  return data.nodes;
-}
-
 // Map Figma styles to a basic Elementor kit format
-function mapToElementorKit(styles: any) {
+function mapToElementorKit(styles: unknown) {
   // This is a minimal example. Elementor kits are more complex, but this gives you a starting point.
-  const colors = Object.values(styles).filter((s: any) => s.style_type === "FILL");
-  const text = Object.values(styles).filter((s: any) => s.style_type === "TEXT");
+  const styleArr = Object.values(styles as Record<string, unknown>);
+  const colors = styleArr.filter((s: any) => s.style_type === "FILL");
+  const text = styleArr.filter((s: any) => s.style_type === "TEXT");
   return {
     elementorKit: {
       colors: colors.map((c: any) => ({ name: c.name, key: c.node_id })),
@@ -51,7 +41,8 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": "attachment; filename=elementor-kit.json",
       },
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 } 
