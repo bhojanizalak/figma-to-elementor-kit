@@ -14,12 +14,12 @@ async function fetchFigmaStyles(figmaToken: string, fileId: string) {
 function mapToElementorKit(styles: unknown) {
   // This is a minimal example. Elementor kits are more complex, but this gives you a starting point.
   const styleArr = Object.values(styles as Record<string, unknown>);
-  const colors = styleArr.filter((s: any) => s.style_type === "FILL");
-  const text = styleArr.filter((s: any) => s.style_type === "TEXT");
+  const colors = styleArr.filter((s) => (s as { style_type?: string }).style_type === "FILL");
+  const text = styleArr.filter((s) => (s as { style_type?: string }).style_type === "TEXT");
   return {
     elementorKit: {
-      colors: colors.map((c: any) => ({ name: c.name, key: c.node_id })),
-      typography: text.map((t: any) => ({ name: t.name, key: t.node_id })),
+      colors: colors.map((c) => ({ name: (c as { name?: string }).name, key: (c as { node_id?: string }).node_id })),
+      typography: text.map((t) => ({ name: (t as { name?: string }).name, key: (t as { node_id?: string }).node_id })),
     },
   };
 }
